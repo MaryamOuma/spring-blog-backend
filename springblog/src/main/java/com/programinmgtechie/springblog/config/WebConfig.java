@@ -30,20 +30,19 @@ public class WebConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf()
-                .disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/auth/**")
-                .permitAll()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    	   http.csrf().disable()
+           .authorizeRequests(authorize -> authorize
+               .requestMatchers("/auth/**").permitAll() // permit access to authentication endpoints
+               .requestMatchers("/api/posts/**").authenticated() // require authentication for /api/posts endpoint
+               .anyRequest().permitAll() // allow all other requests
+           )
+           .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+           .and()
+           .authenticationProvider(authenticationProvider)
+           .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+       return http.build();
+   }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

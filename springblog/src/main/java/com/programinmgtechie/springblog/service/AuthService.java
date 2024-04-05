@@ -2,11 +2,14 @@ package com.programinmgtechie.springblog.service;
 
 
 import java.io.DataInput;
+import java.security.Principal;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,5 +63,17 @@ public class AuthService {
         return userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow();
     }
+    public Optional<User> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Optional.empty();
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User) {
+            return Optional.of((User) principal);
+        }
+        return Optional.empty();
+    }
+
 
 }

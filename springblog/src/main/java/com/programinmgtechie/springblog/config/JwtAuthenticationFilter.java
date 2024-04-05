@@ -21,14 +21,13 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
-
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;
 
     public JwtAuthenticationFilter(
-        JWTService jwtService,
-        UserDetailsService userDetailsService,
-        HandlerExceptionResolver handlerExceptionResolver
+            JWTService jwtService,
+            UserDetailsService userDetailsService,
+            HandlerExceptionResolver handlerExceptionResolver
     ) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
@@ -37,9 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull FilterChain filterChain
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
 
@@ -51,11 +50,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             final String jwt = authHeader.substring(7);
             final String userName = jwtService.extractUsername(jwt);
+            
+            // Log JWT and extracted username
+            System.out.println("JWT: " + jwt);
+            System.out.println("Extracted Username: " + userName);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (userName != null && authentication == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userName);
+                
+                // Log loaded user details
+                System.out.println("User Details: " + userDetails);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -69,8 +75,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
+            // Log the authentication object
+            System.out.println("Authentication: " + SecurityContextHolder.getContext().getAuthentication());
+
             filterChain.doFilter(request, response);
         } catch (Exception exception) {
+            // Log exceptions
+            System.out.println("Exception occurred: " + exception.getMessage());
             handlerExceptionResolver.resolveException(request, response, null, exception);
         }
     }
